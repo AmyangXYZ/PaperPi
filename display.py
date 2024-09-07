@@ -45,11 +45,13 @@ try:
     logging.info("Goto Sleep...")
     epd.sleep()
 
+    sys.exit(0)
 except IOError as e:
     logging.info(e)
+    sys.exit(1)
 
 except KeyboardInterrupt:
     logging.info("ctrl + c:")
     epd7in3f.epdconfig.module_exit(cleanup=True)
-    exit()
+    sys.exit(1)
 
