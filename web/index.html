@@ -1,55 +1,159 @@
-<html class="dark">
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <script src="https://unpkg.com/vue@3.4.31/dist/vue.global.prod.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/theme-chalk/dark/css-vars.css" />
-    <script src="https://unpkg.com/element-plus"></script>
-    <title>PaperPi</title>
-  </head>
-  <style>
-    html.dark {
-      background-color: #12121c;
-      --el-bg-color: #12121c;
-      --el-bg-color-overlay: #12121c;
-    }
-
-    .el-card {
-      --el-card-padding: 10px;
-      background-color: rgba(0, 0, 0, 0.5);
-      --el-card-border-color: #112;
-    }
-    .el-card__body {
-      padding: 10px;
-    }
-
-    .el-table-v2__main,
-    .el-table-v2__header-cell {
-      background-color: rgba(0, 0, 0, 0);
-    }
-  </style>
-  <body>
-    <div id="app">
-      <el-row justify="center">
-        <el-col :span="8">
-          <el-card>
-            <el-image src="images/cat.png" fit="contain" />
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
-    <script>
-      const App = {
-        data() {
-          return {
-            message: "Hello Element Plus",
-          }
-        },
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Upload Demo</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #121212;
+        color: #e0e0e0;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
       }
-      const app = Vue.createApp(App)
-      app.use(ElementPlus)
-      app.mount("#app")
+      .container {
+        width: 100%;
+        max-width: 500px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      #uploadForm {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+      }
+      #fileInput {
+        display: none;
+      }
+      .file-label {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        border: 1px solid #333;
+      }
+      button {
+        background-color: #0a84ff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:disabled {
+        background-color: #555;
+        cursor: not-allowed;
+      }
+      #preview {
+        margin-top: 20px;
+        max-width: 100%;
+        border-radius: 5px;
+        display: none;
+      }
+      #result {
+        margin-top: 20px;
+        text-align: center;
+        font-weight: bold;
+      }
+      .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #0a84ff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+        display: none;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Image Upload</h1>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <label for="fileInput" class="file-label">Choose Image</label>
+        <input type="file" id="fileInput" name="image" accept="image/*" required />
+        <button type="submit" id="uploadButton" disabled>Upload</button>
+      </form>
+      <img id="preview" alt="Image preview" />
+      <div class="loader" id="loader"></div>
+      <div id="result"></div>
+    </div>
+
+    <script>
+      const fileInput = document.getElementById("fileInput")
+      const uploadButton = document.getElementById("uploadButton")
+      const preview = document.getElementById("preview")
+      const result = document.getElementById("result")
+      const loader = document.getElementById("loader")
+
+      fileInput.addEventListener("change", function () {
+        const file = this.files[0]
+        if (file) {
+          uploadButton.disabled = false
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            preview.src = e.target.result
+            preview.style.display = "block"
+          }
+          reader.readAsDataURL(file)
+        } else {
+          uploadButton.disabled = true
+          preview.style.display = "none"
+        }
+      })
+
+      document.getElementById("uploadForm").addEventListener("submit", function (e) {
+        e.preventDefault()
+
+        var formData = new FormData(this)
+
+        uploadButton.disabled = true
+        uploadButton.textContent = "Uploading..."
+        result.textContent = ""
+        loader.style.display = "block"
+
+        fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.text())
+          .then((data) => {
+            result.textContent = data
+            uploadButton.textContent = "Upload"
+            uploadButton.disabled = false
+            loader.style.display = "none"
+          })
+          .catch((error) => {
+            console.error("Error:", error)
+            result.textContent = "An error occurred"
+            uploadButton.textContent = "Upload"
+            uploadButton.disabled = false
+            loader.style.display = "none"
+          })
+      })
     </script>
   </body>
 </html>

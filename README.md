@@ -1,8 +1,12 @@
 # PaperPi
 
-Display Image on E-Paper with Raspberry Pi Zero Series.
+Display Image on E-Paper with Raspberry Pi.
 
 E-paper device and docs: https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual
+
+![front](./demo/front.jpg)
+![back](./demo/back.jpg)
+![web](./demo/web.png)
 
 ## Installation
 
