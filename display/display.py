@@ -23,22 +23,24 @@ try:
 
     # Display your own image
     logging.info(f"Displaying image from: {image_path}")
-    Himage = Image.open(image_path)
+    original_image = Image.open(image_path)
 
-    # Create a white background image
-    background = Image.new('RGB', (epd.width, epd.height), (255, 255, 255))
+    # Crop the center part of the image
+    def crop_center(img, target_width, target_height):
+        img_width, img_height = img.size
+        left = (img_width - target_width) // 2
+        top = (img_height - target_height) // 2
+        right = left + target_width
+        bottom = top + target_height
+        return img.crop((left, top, right, bottom))
 
-    # Calculate position to paste the original image
-    paste_x = (epd.width - Himage.width) // 2
-    paste_y = (epd.height - Himage.height) // 2
-
-    # Paste the original image onto the white background
-    background.paste(Himage, (paste_x, paste_y))
+    # Crop the image to fit the display dimensions
+    cropped_image = crop_center(original_image, epd.width, epd.height)
 
     # Convert the image to RGB mode if it's not already
-    background = background.convert('RGB')
+    cropped_image = cropped_image.convert('RGB')
 
-    epd.display(epd.getbuffer(background))
+    epd.display(epd.getbuffer(cropped_image))
 
     logging.info("Image displayed successfully")
 
@@ -54,4 +56,3 @@ except KeyboardInterrupt:
     logging.info("ctrl + c:")
     epd7in3f.epdconfig.module_exit(cleanup=True)
     sys.exit(1)
-

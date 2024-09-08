@@ -1,0 +1,55 @@
+<html class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <script src="https://unpkg.com/vue@3.4.31/dist/vue.global.prod.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/theme-chalk/dark/css-vars.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <title>PaperPi</title>
+  </head>
+  <style>
+    html.dark {
+      background-color: #12121c;
+      --el-bg-color: #12121c;
+      --el-bg-color-overlay: #12121c;
+    }
+
+    .el-card {
+      --el-card-padding: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+      --el-card-border-color: #112;
+    }
+    .el-card__body {
+      padding: 10px;
+    }
+
+    .el-table-v2__main,
+    .el-table-v2__header-cell {
+      background-color: rgba(0, 0, 0, 0);
+    }
+  </style>
+  <body>
+    <div id="app">
+      <el-row justify="center">
+        <el-col :span="8">
+          <el-card>
+            <el-image src="images/cat.png" fit="contain" />
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
+    <script>
+      const App = {
+        data() {
+          return {
+            message: "Hello Element Plus",
+          }
+        },
+      }
+      const app = Vue.createApp(App)
+      app.use(ElementPlus)
+      app.mount("#app")
+    </script>
+  </body>
+</html>
