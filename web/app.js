@@ -19,29 +19,25 @@ app.get('/api/display', (req, res) => {
   const { image } = req.query;
   if (!image) return res.status(400).send('Image parameter is required');
 
-  const pythonProcess = spawn('python3', ['../display/display.py', image]);
+  const pythonProcess = spawn('python', ['../display/display.py', '../images/' + image]);
 
-  let errorOccurred = false;
 
-  pythonProcess.on('error', handleError);
-  pythonProcess.stderr.on('data', handleError);
+  pythonProcess.on('error', () => {
+    console.error('Error:', error.toString());
+    res.status(500).send('Error displaying image');
+  });
+
   pythonProcess.on('close', code => {
     if (!errorOccurred) {
       if (code === 0) {
-        res.send('Image displayed successfully');
+        res.send(image + ' displayed successfully');
+        console.log(image + ' displayed successfully')
       } else {
         handleError(`Python script exited with code ${code}`);
       }
     }
   });
 
-  function handleError(error) {
-    if (!errorOccurred) {
-      errorOccurred = true;
-      console.error('Error:', error.toString());
-      res.status(500).send('Error displaying image');
-    }
-  }
 });
 
 app.listen(port, () => {
