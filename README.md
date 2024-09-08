@@ -1,12 +1,12 @@
 # PaperPi
 
-Display Image on E-Paper with Raspberry Pi.
+Display images on an 7-color E-Paper screen using a Raspberry Pi, without the need for continuous power. Perfect for low-power, long-lasting image displays.
 
 E-paper device and docs: https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual
 
-![front](./demo/front.jpg)
-![back](./demo/back.jpg)
-![web](./demo/web.png)
+<img src="./demo/front.jpg" alt="front" width="500"/>
+<img src="./demo/back.jpg" alt="back" width="500"/>
+<img src="./demo/web.png" alt="web" width="500"/>
 
 ## Installation
 
