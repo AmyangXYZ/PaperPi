@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Image Upload Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
+    <title>PaperPi Image Upload</title>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -87,6 +88,17 @@
           transform: rotate(360deg);
         }
       }
+      #cropContainer {
+        max-width: 100%;
+        max-height: 400px; /* Adjust this value as needed */
+        margin-top: 20px;
+        display: none;
+        overflow: hidden;
+      }
+      #cropImage {
+        max-width: 100%;
+        max-height: 100%;
+      }
     </style>
   </head>
   <body>
@@ -95,64 +107,133 @@
       <form id="uploadForm" enctype="multipart/form-data">
         <label for="fileInput" class="file-label">Choose Image</label>
         <input type="file" id="fileInput" name="image" accept="image/*" required />
-        <button type="submit" id="uploadButton" disabled>Upload</button>
+        <div id="cropContainer">
+          <img id="cropImage" src="" alt="Image to crop" />
+        </div>
+        <button type="button" id="cropUploadButton" disabled>Upload</button>
       </form>
       <img id="preview" alt="Image preview" />
       <div class="loader" id="loader"></div>
       <div id="result"></div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script>
       const fileInput = document.getElementById("fileInput")
-      const uploadButton = document.getElementById("uploadButton")
+      const cropUploadButton = document.getElementById("cropUploadButton")
       const preview = document.getElementById("preview")
       const result = document.getElementById("result")
       const loader = document.getElementById("loader")
+      const cropContainer = document.getElementById("cropContainer")
+      const cropImage = document.getElementById("cropImage")
+
+      let cropper
 
       fileInput.addEventListener("change", function () {
         const file = this.files[0]
         if (file) {
-          uploadButton.disabled = false
           const reader = new FileReader()
           reader.onload = function (e) {
-            preview.src = e.target.result
-            preview.style.display = "block"
+            cropImage.src = e.target.result
+            cropContainer.style.display = "block"
+            preview.style.display = "none"
+            cropUploadButton.disabled = false
+
+            if (cropper) {
+              cropper.destroy()
+            }
+
+            const image = new Image()
+            image.onload = function () {
+              const imageWidth = this.width
+              const imageHeight = this.height
+              const aspectRatio = 800 / 480
+
+              cropper = new Cropper(cropImage, {
+                aspectRatio: aspectRatio,
+                viewMode: 1,
+                dragMode: "move",
+                autoCropArea: 1,
+                restore: false,
+                center: false,
+                highlight: false,
+                cropBoxMovable: false,
+                cropBoxResizable: false,
+                toggleDragModeOnDblclick: false,
+                ready: function () {
+                  const containerWidth = cropContainer.offsetWidth
+                  const containerHeight = cropContainer.offsetHeight
+                  let cropBoxWidth, cropBoxHeight
+
+                  if (containerWidth / containerHeight > aspectRatio) {
+                    cropBoxHeight = containerHeight
+                    cropBoxWidth = cropBoxHeight * aspectRatio
+                  } else {
+                    cropBoxWidth = containerWidth
+                    cropBoxHeight = cropBoxWidth / aspectRatio
+                  }
+
+                  this.cropper.setCropBoxData({
+                    width: cropBoxWidth,
+                    height: cropBoxHeight,
+                    left: (containerWidth - cropBoxWidth) / 2,
+                    top: (containerHeight - cropBoxHeight) / 2,
+                  })
+                },
+              })
+            }
+            image.src = e.target.result
           }
           reader.readAsDataURL(file)
         } else {
-          uploadButton.disabled = true
+          cropUploadButton.disabled = true
           preview.style.display = "none"
+          cropContainer.style.display = "none"
         }
       })
 
-      document.getElementById("uploadForm").addEventListener("submit", function (e) {
-        e.preventDefault()
-
-        var formData = new FormData(this)
-
-        uploadButton.disabled = true
-        uploadButton.textContent = "Uploading..."
-        result.textContent = ""
-        loader.style.display = "block"
-
-        fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        })
-          .then((response) => response.text())
-          .then((data) => {
-            result.textContent = data
-            uploadButton.textContent = "Upload"
-            uploadButton.disabled = false
-            loader.style.display = "none"
+      cropUploadButton.addEventListener("click", function () {
+        if (cropper) {
+          const croppedCanvas = cropper.getCroppedCanvas({
+            width: 800,
+            height: 480,
           })
-          .catch((error) => {
-            console.error("Error:", error)
-            result.textContent = "An error occurred"
-            uploadButton.textContent = "Upload"
-            uploadButton.disabled = false
-            loader.style.display = "none"
-          })
+
+          preview.src = croppedCanvas.toDataURL()
+          preview.style.display = "block"
+          cropContainer.style.display = "none"
+
+          croppedCanvas.toBlob(function (blob) {
+            const croppedFile = new File([blob], "cropped_image.jpg", { type: "image/jpeg" })
+
+            const formData = new FormData()
+            formData.append("image", croppedFile)
+
+            cropUploadButton.disabled = true
+            cropUploadButton.textContent = "Uploading..."
+            result.textContent = ""
+            loader.style.display = "block"
+
+            fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            })
+              .then((response) => response.text())
+              .then((data) => {
+                result.textContent = data
+                cropUploadButton.textContent = "Crop and Upload"
+                cropUploadButton.disabled = false
+                loader.style.display = "none"
+              })
+              .catch((error) => {
+                console.error("Error:", error)
+                result.textContent = "An error occurred"
+                cropUploadButton.textContent = "Crop and Upload"
+                cropUploadButton.disabled = false
+                loader.style.display = "none"
+              })
+          }, "image/jpeg")
+        }
       })
     </script>
   </body>

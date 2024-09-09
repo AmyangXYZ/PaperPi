@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 try:
     # Check if image path is provided as command line argument
     if len(sys.argv) < 2:
-        print("Usage: python pi0_e_paper.py <image_path>")
+        print("Usage: python display.py <image_path>")
         sys.exit(1)
 
     image_path = sys.argv[1]
@@ -23,24 +23,16 @@ try:
 
     # Display your own image
     logging.info(f"Displaying image from: {image_path}")
-    original_image = Image.open(image_path)
+    image = Image.open(image_path)
 
-    # Crop the center part of the image
-    def crop_center(img, target_width, target_height):
-        img_width, img_height = img.size
-        left = (img_width - target_width) // 2
-        top = (img_height - target_height) // 2
-        right = left + target_width
-        bottom = top + target_height
-        return img.crop((left, top, right, bottom))
+    # Ensure the image is in RGB mode
+    image = image.convert('RGB')
 
-    # Crop the image to fit the display dimensions
-    cropped_image = crop_center(original_image, epd.width, epd.height)
+    # Resize the image to fit the display dimensions if necessary
+    if image.size != (epd.width, epd.height):
+        image = image.resize((epd.width, epd.height), Image.LANCZOS)
 
-    # Convert the image to RGB mode if it's not already
-    cropped_image = cropped_image.convert('RGB')
-
-    epd.display(epd.getbuffer(cropped_image))
+    epd.display(epd.getbuffer(image))
 
     logging.info("Image displayed successfully")
 
